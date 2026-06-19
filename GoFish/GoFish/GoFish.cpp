@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <ctime>
 
-//extern "C" signed char asdfcascf();
+extern "C" signed char choose_opponent_card(signed char* opponent_cards, signed char* eventual_cards, short count_of_check_opponent);
 
 class SetsOfCards {
 public:
@@ -10,6 +10,7 @@ public:
     signed char* count_of_cards = new signed char[13] {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
     signed char* player_cards = new signed char[13] {};
     signed char* opponent_cards = new signed char[13] {};
+    signed char* eventual_cards = new signed char[13] {};
 
     ~SetsOfCards() {
         delete[] deck_of_cards;
@@ -35,19 +36,37 @@ public:
         for (int i = 0; i < 13; ++i) {
             std::cout << (int)opponent_cards[i] << " ";
         }
+        std::cout << std::endl << "Opponent's ev cards:\t";
+        for (int i = 0; i < 13; ++i) {
+            std::cout << (int)eventual_cards[i] << " ";
+        }
         std::cout << std::endl;
     }
 
-    void give_player_card() {
-        signed char new_card = rand() % 13;
-        player_cards[(int)new_card]++;
-        count_of_cards[(int)new_card]--;
+    signed char give_player_card() {
+        signed char new_card;
+        while (true) {
+            new_card = rand() % 13;
+            if (count_of_cards[(int)new_card] != 0) {
+                player_cards[(int)new_card]++;
+                count_of_cards[(int)new_card]--;
+                break;
+            }
+        }
+        return new_card;
     }
 
-    void give_opponent_card() {
-        signed char new_card = rand() % 13;
-        opponent_cards[(int)new_card]++;
-        count_of_cards[(int)new_card]--;
+    signed char give_opponent_card() {
+        signed char new_card;
+        while (true) {
+            new_card = rand() % 13;
+            if (count_of_cards[(int)new_card] != 0) {
+                opponent_cards[(int)new_card]++;
+                count_of_cards[(int)new_card]--;
+                break;
+            }
+        }
+        return new_card;
     }
 
     signed char get_count_player_card() {
@@ -65,11 +84,16 @@ class GameLoop {
 public:
     SetsOfCards Cards;
     short cur_card;
+    short count_of_player_cards;
     short count_of_cards;
+    short count_of_player_sets;
+    short count_of_opponent_sets;
+    short count_of_check_opponent;
+
 
     void Loop() {
         while (true) {
-            Cards.print();
+            //Cards.print();
 
             print_player_display();
 
@@ -83,13 +107,21 @@ public:
                         if ((int)Cards.opponent_cards[i] > 0) {
                             Cards.player_cards[i] += Cards.opponent_cards[i];
                             Cards.opponent_cards[i] = 0;
-                            std::cout << "Yeah!" << std::endl;
+                            Cards.eventual_cards[i] = 9;
+                            std::cout << "The opponent has given you his set of " << Cards.deck_of_cards[i] << std::endl;
+                            check_collected_player_set(i);
                             break;
                         }
                         else {
-                            Cards.give_player_card();
-                            std::cout << "Nope!" << std::endl;
+                            ++Cards.eventual_cards[i];
+                            std::cout << "The opponent didn't have a card of that suit! You take a card from the deck." << std::endl;
+                            if (count_of_cards != 0) {
+                                check_collected_player_set((int)Cards.give_player_card());
+                                --count_of_cards;
+                            }
+                            else check_collected_player_set(i);
                             break;
+                            
                         }
                     }
                 }
@@ -97,8 +129,60 @@ public:
 
 
             // тут выбирает противник
+            short choose_opponent = (short)choose_opponent_card(Cards.opponent_cards, Cards.eventual_cards, count_of_check_opponent);
+            //std::cout << "Oponnet choose: " << choose_opponent + 1 << std::endl;
+
+            ++count_of_check_opponent;
+            if (count_of_check_opponent == 5) count_of_check_opponent = 0;
+
+            if ((int)Cards.player_cards[choose_opponent] > 0) {
+                Cards.opponent_cards[choose_opponent] += Cards.player_cards[choose_opponent];
+                Cards.player_cards[choose_opponent] = 0;
+                Cards.eventual_cards[choose_opponent] = 0;
+                std::cout << "You gave the opponent a set of " << Cards.deck_of_cards[choose_opponent] << std::endl;
+                check_collected_player_set(choose_opponent);
+            }
+            else {
+                Cards.eventual_cards[choose_opponent] = 0;
+                std::cout << "You didn't have a card with the value " << Cards.deck_of_cards[choose_opponent] <<"! The opponent takes a card from the deck." << std::endl;
+                if (count_of_cards != 0) {
+                    check_collected_player_set((int)Cards.give_opponent_card());
+                    --count_of_cards;
+                }
+                else check_collected_opponent_set(choose_opponent);
+            }
+
+
+            if (count_of_player_sets + count_of_opponent_sets == 13) {
+                if (count_of_player_sets > count_of_opponent_sets) {
+                    std::cout << "Game over! You win!" << std::endl;
+                }
+                else {
+                    std::cout << "Game over! You lose!" << std::endl;
+                }
+                break;
+            }
         }
     }
+
+    void check_collected_player_set(int player_choose_card) {
+        if ((int)Cards.player_cards[player_choose_card] == 4) {
+            Cards.player_cards[player_choose_card] = 0;
+            ++count_of_player_sets;
+            Cards.eventual_cards[player_choose_card] = -1;
+            std::cout << "You have collected set of " << Cards.deck_of_cards[player_choose_card] << ". In total you have " << count_of_player_sets << " sets" << std::endl;
+        }
+    }
+
+    void check_collected_opponent_set(int opponent_choose_card) {
+        if ((int)Cards.opponent_cards[opponent_choose_card] == 4) {
+            Cards.opponent_cards[opponent_choose_card] = 0;
+            ++count_of_opponent_sets;
+            Cards.eventual_cards[opponent_choose_card] = -1;
+            std::cout << "The opponent have collected set. In total he has " << count_of_opponent_sets << " sets" << std::endl;
+        }
+    }
+
 
     void StartGame() {
         for (int i = 0; i < 7; ++i) {
@@ -107,14 +191,23 @@ public:
         }
 
         cur_card = 0;
-        count_of_cards = Cards.get_count_player_card();
+        count_of_cards = 52;
+        count_of_player_cards = Cards.get_count_player_card();
+        count_of_player_sets = 0;
+        count_of_opponent_sets = 0;
 
         Loop();
     }
 
     void select_player_card() {
-        std::cout << "Choose a card: ";
-        std::cin >> cur_card;
+        while (true) {
+            std::cout << "Choose a card with a number: ";
+            std::cin >> cur_card;
+            if (cur_card > count_of_player_cards or cur_card <= 0) {
+                std::cout << "Incorrect card set number!" << std::endl;
+            }
+            else break;
+        }
     }
 
     void print_player_display() {
