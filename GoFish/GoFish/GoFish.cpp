@@ -3,16 +3,12 @@
 #include <ctime>
 
 class SetsOfCards {
-private:
+public:
     signed char* deck_of_cards = new signed char[13] {'2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K', 'A'};
     signed char* count_of_cards = new signed char[13] {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4};
     signed char* player_cards = new signed char[13] {};
     signed char* opponent_cards = new signed char[13] {};
 
-public:
-    SetsOfCards() {
-
-    }
     ~SetsOfCards() {
         delete[] deck_of_cards;
         delete[] count_of_cards;
@@ -21,16 +17,21 @@ public:
     }
 
     void print() {
+        std::cout << "Set of suits:\t\t";
         for (int i = 0; i < 13; ++i) {
             std::cout << deck_of_cards[i] << " ";
         }
-        std::cout << std::endl;
+        std::cout << std::endl << "Dest of cards:\t\t";
         for (int i = 0; i < 13; ++i) {
             std::cout << (int)count_of_cards[i] << " ";
         }
-        std::cout << std::endl;
+        std::cout << std::endl << "Player's cards:\t\t";
         for (int i = 0; i < 13; ++i) {
             std::cout << (int)player_cards[i] << " ";
+        }
+        std::cout << std::endl << "Opponent's cards:\t";
+        for (int i = 0; i < 13; ++i) {
+            std::cout << (int)opponent_cards[i] << " ";
         }
         std::cout << std::endl;
     }
@@ -47,54 +48,86 @@ public:
         count_of_cards[(int)new_card]--;
     }
 
-    signed char* get_player_suit_cards() {
-        return deck_of_cards;
-    }
-
-    signed char* get_player_count_cards() {
-        return player_cards;
+    signed char get_count_player_card() {
+        signed char count = 0;
+        for (int i = 0; i < 13; ++i) {
+            if ((int)player_cards[i] > 0) {
+                ++count;
+            }
+        }
+        return count;
     }
 };
 
 class GameLoop {
 public:
     SetsOfCards Cards;
+    short cur_card;
+    short count_of_cards;
 
     void Loop() {
-        Cards.print();
+        while (true) {
+
+        }
     }
 
     void StartGame() {
-        Cards.print();
         for (int i = 0; i < 7; ++i) {
             Cards.give_player_card();
             Cards.give_opponent_card();
         }
         Cards.print();
-        print_player_cards();
+
+        cur_card = 0;
+        count_of_cards = Cards.get_count_player_card();
+
+        print_player_display();
+
+        select_player_card();
+
+        short count = 0;
+        for (int i = 0; i < 13; ++i) {
+            if ((int)Cards.player_cards[i] > 0) {
+                ++count;
+                std::cout << count << " " << cur_card << std::endl;
+                if (count == cur_card) {
+                    if ((int)Cards.opponent_cards[i] > 0) {
+                        std::cout << "Yeah!" << std::endl;
+                        break;
+                    }
+                    else {
+                        std::cout << "Nope!" << std::endl;
+                        break;
+                    }
+                }
+            }
+        }
     }
 
-    void print_player_cards() {
+    void select_player_card() {
+        std::cout << "Choose a card: ";
+        std::cin >> cur_card;
+    }
+
+    void print_player_display() {
         for (int i = 0; i < 13; ++i) {
-            if ((int)Cards.get_player_count_cards()[i] > 0) {
-                std::cout << Cards.get_player_suit_cards()[i] << " ";
+            if ((int)Cards.player_cards[i] > 0) {
+                std::cout << Cards.deck_of_cards[i] << " ";
             }
         }
         std::cout << std::endl;
         for (int i = 0; i < 13; ++i) {
-            if ((int)Cards.get_player_count_cards()[i] > 0) {
-                std::cout << (int)Cards.get_player_count_cards()[i] << " ";
+            if ((int)Cards.player_cards[i] > 0) {
+                std::cout << (int)Cards.player_cards[i] << " ";
             }
         }
         std::cout << std::endl;
-        for (int i = 0; i < 13; ++i) {
-            if (i == 1) std::cout << "^ ";
-            else std::cout << "  ";
-        }
+        //for (int i = 0; i < count_of_cards; ++i) {
+        //    if (i == cur_card) std::cout << "^ ";
+        //    else std::cout << "  ";
+        //}
+        //std::cout << std::endl;
     }
-
-
-
 };
 
 int main()
