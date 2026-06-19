@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <ctime>
 
+//extern "C" signed char asdfcascf();
+
 class SetsOfCards {
 public:
     signed char* deck_of_cards = new signed char[13] {'2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K', 'A'};
@@ -67,7 +69,34 @@ public:
 
     void Loop() {
         while (true) {
+            Cards.print();
 
+            print_player_display();
+
+            select_player_card();
+
+            short count = 0;
+            for (int i = 0; i < 13; ++i) {
+                if ((int)Cards.player_cards[i] > 0) {
+                    ++count;
+                    if (count == cur_card) {
+                        if ((int)Cards.opponent_cards[i] > 0) {
+                            Cards.player_cards[i] += Cards.opponent_cards[i];
+                            Cards.opponent_cards[i] = 0;
+                            std::cout << "Yeah!" << std::endl;
+                            break;
+                        }
+                        else {
+                            Cards.give_player_card();
+                            std::cout << "Nope!" << std::endl;
+                            break;
+                        }
+                    }
+                }
+            }
+
+
+            // тут выбирает противник
         }
     }
 
@@ -76,32 +105,11 @@ public:
             Cards.give_player_card();
             Cards.give_opponent_card();
         }
-        Cards.print();
 
         cur_card = 0;
         count_of_cards = Cards.get_count_player_card();
 
-        print_player_display();
-
-        select_player_card();
-
-        short count = 0;
-        for (int i = 0; i < 13; ++i) {
-            if ((int)Cards.player_cards[i] > 0) {
-                ++count;
-                std::cout << count << " " << cur_card << std::endl;
-                if (count == cur_card) {
-                    if ((int)Cards.opponent_cards[i] > 0) {
-                        std::cout << "Yeah!" << std::endl;
-                        break;
-                    }
-                    else {
-                        std::cout << "Nope!" << std::endl;
-                        break;
-                    }
-                }
-            }
-        }
+        Loop();
     }
 
     void select_player_card() {
