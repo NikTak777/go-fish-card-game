@@ -78,6 +78,16 @@ public:
         }
         return count;
     }
+
+    signed char get_count_opponent_card() {
+        signed char count = 0;
+        for (int i = 0; i < 13; ++i) {
+            if ((int)opponent_cards[i] > 0) {
+                ++count;
+            }
+        }
+        return count;
+    }
 };
 
 class GameLoop {
@@ -89,11 +99,19 @@ public:
     short count_of_player_sets;
     short count_of_opponent_sets;
     short count_of_check_opponent;
+    bool is_victory;
 
 
     void Loop() {
         while (true) {
-            //Cards.print();
+            // Cards.print();
+
+            count_of_player_cards = Cards.get_count_player_card();
+
+            if (Cards.get_count_player_card() == 0) {
+                Cards.give_player_card();
+
+            }
 
             print_player_display();
 
@@ -114,12 +132,15 @@ public:
                         }
                         else {
                             ++Cards.eventual_cards[i];
-                            std::cout << "The opponent didn't have a card of that suit! You take a card from the deck." << std::endl;
+                            int new_card_player = (int)Cards.give_player_card();
+                            std::cout << "The opponent didn't have a card with the value " << Cards.deck_of_cards[i] << "! You take a card " << Cards.deck_of_cards[new_card_player] << " from the deck." << std::endl;
                             if (count_of_cards != 0) {
-                                check_collected_player_set((int)Cards.give_player_card());
+                                check_collected_player_set(new_card_player);
                                 --count_of_cards;
                             }
-                            else check_collected_player_set(i);
+                            else {
+                                check_collected_player_set(new_card_player);
+                            }
                             break;
                             
                         }
@@ -127,42 +148,59 @@ public:
                 }
             }
 
+            if (check_victory() == 0) {
+                break;
+            }
 
+            if (Cards.get_count_opponent_card() == 0) {
+                Cards.give_player_card();
+            }
+
+            if (count_of_check_opponent >= Cards.get_count_opponent_card() or count_of_check_opponent >= 5) {
+                count_of_check_opponent = 0;
+            }
+            // std::cout << "Oponnet randomize: " << count_of_check_opponent << std::endl;
             // тут выбирает противник
             short choose_opponent = (short)choose_opponent_card(Cards.opponent_cards, Cards.eventual_cards, count_of_check_opponent);
-            //std::cout << "Oponnet choose: " << choose_opponent + 1 << std::endl;
-
+            // std::cout << "Oponnet choose: " << Cards.deck_of_cards[choose_opponent] << std::endl;
             ++count_of_check_opponent;
-            if (count_of_check_opponent == 5) count_of_check_opponent = 0;
 
             if ((int)Cards.player_cards[choose_opponent] > 0) {
                 Cards.opponent_cards[choose_opponent] += Cards.player_cards[choose_opponent];
                 Cards.player_cards[choose_opponent] = 0;
                 Cards.eventual_cards[choose_opponent] = 0;
                 std::cout << "You gave the opponent a set of " << Cards.deck_of_cards[choose_opponent] << std::endl;
-                check_collected_player_set(choose_opponent);
+                check_collected_opponent_set(choose_opponent);
+                ++count_of_check_opponent;
             }
             else {
                 Cards.eventual_cards[choose_opponent] = 0;
                 std::cout << "You didn't have a card with the value " << Cards.deck_of_cards[choose_opponent] <<"! The opponent takes a card from the deck." << std::endl;
                 if (count_of_cards != 0) {
-                    check_collected_player_set((int)Cards.give_opponent_card());
+                    check_collected_opponent_set((int)Cards.give_opponent_card());
                     --count_of_cards;
                 }
                 else check_collected_opponent_set(choose_opponent);
             }
 
-
-            if (count_of_player_sets + count_of_opponent_sets == 13) {
-                if (count_of_player_sets > count_of_opponent_sets) {
-                    std::cout << "Game over! You win!" << std::endl;
-                }
-                else {
-                    std::cout << "Game over! You lose!" << std::endl;
-                }
+            if (check_victory() == 0) {
                 break;
             }
         }
+        system("pause");
+    }
+
+    int check_victory() {
+        if (count_of_player_sets + count_of_opponent_sets == 13 or count_of_player_sets >= 7 or count_of_opponent_sets >= 7) {
+            if (count_of_player_sets > count_of_opponent_sets) {
+                std::cout << "Game over! You win!" << std::endl;
+            }
+            else {
+                std::cout << "Game over! You lose!" << std::endl;
+            }
+            return 0;
+        }
+        return 1;
     }
 
     void check_collected_player_set(int player_choose_card) {
@@ -195,6 +233,8 @@ public:
         count_of_player_cards = Cards.get_count_player_card();
         count_of_player_sets = 0;
         count_of_opponent_sets = 0;
+        count_of_check_opponent = 0;
+        is_victory = 0;
 
         Loop();
     }
