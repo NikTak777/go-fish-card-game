@@ -90,6 +90,15 @@ public:
         }
         return count;
     }
+
+
+    int get_count_cards_in_deck() {
+        int total = 0;
+        for (int i = 0; i < 13; ++i) {
+            total += count_of_cards[i];
+        }
+        return total;
+    }
 };
 
 class GameLoop {
@@ -97,7 +106,6 @@ public:
     SetsOfCards Cards;
     short cur_card;
     short count_of_player_cards;
-    short count_of_cards;
     short count_of_player_sets;
     short count_of_opponent_sets;
     short count_of_check_opponent;
@@ -113,6 +121,7 @@ public:
             if (Cards.get_count_player_card() == 0) {
                 Cards.give_player_card();
                 count_of_player_cards = Cards.get_count_player_card();
+                std::cout << "You had no cards! You drew a card from the deck." << std::endl;
             }
 
             print_player_display();
@@ -138,9 +147,8 @@ public:
                             ++Cards.eventual_cards[i];
                             int new_card_player = (int)Cards.give_player_card();
                             std::cout << "The opponent didn't have a card with the value " << Cards.deck_of_cards[i] << "! You take a card " << Cards.deck_of_cards[new_card_player] << " from the deck." << std::endl;
-                            if (count_of_cards != 0) {
+                            if (Cards.get_count_cards_in_deck() > 0) {
                                 check_collected_player_set(new_card_player, true);
-                                --count_of_cards;
                             }
                             else {
                                 check_collected_player_set(new_card_player, true);
@@ -157,7 +165,8 @@ public:
             }
 
             if (Cards.get_count_opponent_card() == 0) {
-                Cards.give_player_card();
+                Cards.give_opponent_card();
+                std::cout << "The opponent had no cards! He drew a card from the deck." << std::endl;
             }
 
             if (count_of_check_opponent >= Cards.get_count_opponent_card() or count_of_check_opponent >= 5) {
@@ -183,9 +192,8 @@ public:
             else {
                 Cards.eventual_cards[choose_opponent] = 0;
                 std::cout << "You didn't have a card with the value " << Cards.deck_of_cards[choose_opponent] <<"! The opponent takes a card from the deck." << std::endl;
-                if (count_of_cards != 0) {
+                if (Cards.get_count_cards_in_deck() > 0) {
                     check_collected_opponent_set((int)Cards.give_opponent_card());
-                    --count_of_cards;
                 }
                 else check_collected_opponent_set(choose_opponent);
             }
@@ -201,9 +209,11 @@ public:
         if (count_of_player_sets + count_of_opponent_sets == 13 or count_of_player_sets >= 7 or count_of_opponent_sets >= 7) {
             if (count_of_player_sets > count_of_opponent_sets) {
                 std::cout << "Game over! You win!" << std::endl;
+                std::cout << "You have " << count_of_player_sets << " sets. The opponent has " << count_of_opponent_sets << " sets" << std::endl;
             }
             else {
                 std::cout << "Game over! You lose!" << std::endl;
+                std::cout << "The opponent has " << count_of_opponent_sets << " sets. You have " << count_of_player_sets << " sets" << std::endl;
             }
             return 0;
         }
@@ -230,18 +240,23 @@ public:
 
 
     void StartGame() {
+        cur_card = 0;
+        count_of_player_sets = 0;
+        count_of_opponent_sets = 0;
+        count_of_check_opponent = 0;
+        is_victory = 0;
+
         for (int i = 0; i < 7; ++i) {
             Cards.give_player_card();
             Cards.give_opponent_card();
         }
 
-        cur_card = 0;
-        count_of_cards = 52;
         count_of_player_cards = Cards.get_count_player_card();
-        count_of_player_sets = 0;
-        count_of_opponent_sets = 0;
-        count_of_check_opponent = 0;
-        is_victory = 0;
+
+        for (int i = 0; i < 13; ++i) {
+            check_collected_player_set(i);
+            check_collected_opponent_set(i);
+        }
 
         Loop();
     }
