@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <conio.h>
 
 extern "C" signed char choose_opponent_card(signed char* opponent_cards, signed char* eventual_cards, short count_of_check_opponent);
 
@@ -17,6 +18,7 @@ public:
         delete[] count_of_cards;
         delete[] player_cards;
         delete[] opponent_cards;
+        delete[] eventual_cards;
     }
 
     void print() {
@@ -110,12 +112,14 @@ public:
 
             if (Cards.get_count_player_card() == 0) {
                 Cards.give_player_card();
-
+                count_of_player_cards = Cards.get_count_player_card();
             }
 
             print_player_display();
 
             select_player_card();
+
+            system("cls");
 
             short count = 0;
             for (int i = 0; i < 13; ++i) {
@@ -243,13 +247,31 @@ public:
     }
 
     void select_player_card() {
+        cur_card = 1;
+        char key;
+
         while (true) {
-            std::cout << "Choose a card with a number: ";
-            std::cin >> cur_card;
-            if (cur_card > count_of_player_cards or cur_card <= 0) {
-                std::cout << "Incorrect card set number!" << std::endl;
+            std::cout << "\r";
+
+            for (int i = 1; i <= count_of_player_cards; ++i) {
+                if (i == cur_card) std::cout << "^ ";
+                else std::cout << "  ";
             }
-            else break;
+
+            std::cout << "(A - left, D - right, Enter - select)";
+
+            key = _getch();
+
+            if (key == 'a' || key == 'A') {
+                if (cur_card > 1) cur_card--;
+            }
+            else if (key == 'd' || key == 'D') {
+                if (cur_card < count_of_player_cards) cur_card++;
+            }
+            else if (key == '\r') {
+                std::cout << std::endl;
+                break;
+            }
         }
     }
 
