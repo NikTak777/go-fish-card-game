@@ -16,7 +16,46 @@
 	xor r9, r9
 	mov r11, 0
 	mov r10, 0
-	mov r12, 3
+
+	CheckNinePriorInit:
+		xor rax, rax
+		xor r12, r12
+	CheckNinePrior:	
+		cmp al, 13
+		je CheckOnePriorInit
+
+		mov r10b, byte ptr [rcx + rax]
+		mov r12b, byte ptr [rdx + rax]
+
+		cmp r10b, 0
+		jle NextNinePrior
+
+		cmp r12b, 9
+		jge ExitLoop
+
+	NextNinePrior:
+		inc rax								
+		jmp CheckNinePrior
+
+	CheckOnePriorInit:
+		xor rax, rax
+		xor r12, r12
+	CheckOnePrior:	
+		cmp al, 13
+		je CheckThreeCardsInit
+
+		mov r10b, byte ptr [rcx + rax]
+		mov r12b, byte ptr [rdx + rax]
+
+		cmp r10b, 0
+		jle NextOnePrior
+
+		cmp r12b, 1
+		jge ExitLoop
+
+	NextOnePrior:
+		inc rax								
+		jmp CheckOnePrior
 
 	; Проверка колоды на тройки
 	CheckThreeCardsInit:

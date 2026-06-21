@@ -135,11 +135,11 @@ public:
                             int new_card_player = (int)Cards.give_player_card();
                             std::cout << "The opponent didn't have a card with the value " << Cards.deck_of_cards[i] << "! You take a card " << Cards.deck_of_cards[new_card_player] << " from the deck." << std::endl;
                             if (count_of_cards != 0) {
-                                check_collected_player_set(new_card_player);
+                                check_collected_player_set(new_card_player, true);
                                 --count_of_cards;
                             }
                             else {
-                                check_collected_player_set(new_card_player);
+                                check_collected_player_set(new_card_player, true);
                             }
                             break;
                             
@@ -159,6 +159,9 @@ public:
             if (count_of_check_opponent >= Cards.get_count_opponent_card() or count_of_check_opponent >= 5) {
                 count_of_check_opponent = 0;
             }
+
+            // Cards.print();
+
             // std::cout << "Oponnet randomize: " << count_of_check_opponent << std::endl;
             // тут выбирает противник
             short choose_opponent = (short)choose_opponent_card(Cards.opponent_cards, Cards.eventual_cards, count_of_check_opponent);
@@ -171,7 +174,7 @@ public:
                 Cards.eventual_cards[choose_opponent] = 0;
                 std::cout << "You gave the opponent a set of " << Cards.deck_of_cards[choose_opponent] << std::endl;
                 check_collected_opponent_set(choose_opponent);
-                ++count_of_check_opponent;
+                //++count_of_check_opponent;
             }
             else {
                 Cards.eventual_cards[choose_opponent] = 0;
@@ -203,11 +206,11 @@ public:
         return 1;
     }
 
-    void check_collected_player_set(int player_choose_card) {
+    void check_collected_player_set(int player_choose_card, bool from_deck = false) {
         if ((int)Cards.player_cards[player_choose_card] == 4) {
             Cards.player_cards[player_choose_card] = 0;
             ++count_of_player_sets;
-            Cards.eventual_cards[player_choose_card] = -1;
+            if (!from_deck) Cards.eventual_cards[player_choose_card] = -1;
             std::cout << "You have collected set of " << Cards.deck_of_cards[player_choose_card] << ". In total you have " << count_of_player_sets << " sets" << std::endl;
         }
     }
