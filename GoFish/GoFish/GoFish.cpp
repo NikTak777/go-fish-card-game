@@ -5,6 +5,13 @@
 
 extern "C" signed char choose_opponent_card(signed char* opponent_cards, signed char* eventual_cards, short count_of_check_opponent);
 
+const std::string RESET = "\033[0m";
+const std::string RED = "\033[31m";
+const std::string GREEN = "\033[32m";
+const std::string YELLOW = "\033[33m";
+const std::string CYAN = "\033[36m";
+const std::string MAGENTA = "\033[35m";
+
 class SetsOfCards {
 public:
     signed char* deck_of_cards = new signed char[13] {'2', '3', '4', '5', '6', '7', '8', '9', '0', 'J', 'Q', 'K', 'A'};
@@ -133,7 +140,7 @@ public:
             if (Cards.get_count_player_card() == 0) {
                 Cards.give_player_card();
                 count_of_player_cards = Cards.get_count_player_card();
-                std::cout << "You had no cards! You drew a card from the deck." << std::endl;
+                std::cout << CYAN << "[!] INFO: You had no cards! You drew a card from the deck." << RESET << std::endl;
             }
 
             print_player_display();
@@ -151,14 +158,14 @@ public:
                             Cards.player_cards[i] += Cards.opponent_cards[i];
                             Cards.opponent_cards[i] = 0;
                             Cards.eventual_cards[i] = 9;
-                            std::cout << "The opponent has given you his set of " << Cards.deck_of_cards[i] << std::endl;
+                            std::cout << GREEN << "[+] SUCCESS: The opponent has given you his set of " << Cards.deck_of_cards[i] << "." << RESET << std::endl;
                             check_collected_player_set(i);
                             break;
                         }
                         else {
                             ++Cards.eventual_cards[i];
                             int new_card_player = (int)Cards.give_player_card();
-                            std::cout << "The opponent didn't have a card with the value " << Cards.deck_of_cards[i] << "! You take a card " << Cards.deck_of_cards[new_card_player] << " from the deck." << std::endl;
+                            std::cout << MAGENTA << "[-] MISS: The opponent didn't have a card with the value " << Cards.deck_of_cards[i] << "! You take a card " << Cards.deck_of_cards[new_card_player] << " from the deck." << RESET << std::endl;
                             if (Cards.get_count_cards_in_deck() > 0) {
                                 check_collected_player_set(new_card_player, true);
                             }
@@ -178,7 +185,7 @@ public:
 
             if (Cards.get_count_opponent_card() == 0) {
                 Cards.give_opponent_card();
-                std::cout << "The opponent had no cards! He drew a card from the deck." << std::endl;
+                std::cout << CYAN << "[!] INFO: The opponent had no cards! He drew a card from the deck." << RESET << std::endl;
             }
 
             if (count_of_check_opponent >= Cards.get_count_opponent_card() or count_of_check_opponent >= 5) {
@@ -197,13 +204,13 @@ public:
                 Cards.opponent_cards[choose_opponent] += Cards.player_cards[choose_opponent];
                 Cards.player_cards[choose_opponent] = 0;
                 Cards.eventual_cards[choose_opponent] = 0;
-                std::cout << "You gave the opponent a set of " << Cards.deck_of_cards[choose_opponent] << std::endl;
+                std::cout << RED << "[-] ALERT: You gave the opponent a set of " << Cards.deck_of_cards[choose_opponent] << RESET << std::endl;
                 check_collected_opponent_set(choose_opponent);
                 //++count_of_check_opponent;
             }
             else {
                 Cards.eventual_cards[choose_opponent] = 0;
-                std::cout << "You didn't have a card with the value " << Cards.deck_of_cards[choose_opponent] <<"! The opponent takes a card from the deck." << std::endl;
+                std::cout << CYAN << "[?] THINKING: You didn't have a card with the value " << Cards.deck_of_cards[choose_opponent] <<"! The opponent takes a card from the deck." << RESET << std::endl;
                 if (Cards.get_count_cards_in_deck() > 0) {
                     check_collected_opponent_set((int)Cards.give_opponent_card());
                 }
@@ -218,18 +225,36 @@ public:
 
     int check_victory() {
         if (count_of_player_sets + count_of_opponent_sets == 13 or count_of_player_sets >= 7 or count_of_opponent_sets >= 7) {
+
+            system("cls");
+
             if (count_of_player_sets > count_of_opponent_sets) {
                 ++total_player_win;
-                std::cout << "Game over! You win!" << std::endl;
-                std::cout << "You have " << count_of_player_sets << " sets. The opponent has " << count_of_opponent_sets << " sets" << std::endl;
-
+                std::cout << GREEN
+                    << "\n=========================================================\n"
+                    << "                 [W] VICTORY: YOU WIN!                   \n"
+                    << "=========================================================\n"
+                    << "[=] ROUND STATS: You have " << count_of_player_sets << " sets. Opponent has " << count_of_opponent_sets << " sets.\n"
+                    << "=========================================================\n"
+                    << RESET;
             }
             else {
                 ++total_opponent_win;
-                std::cout << "Game over! You lose!" << std::endl;
-                std::cout << "The opponent has " << count_of_opponent_sets << " sets. You have " << count_of_player_sets << " sets" << std::endl;
+                std::cout << RED
+                    << "\n=========================================================\n"
+                    << "                 [L] DEFEAT: YOU LOSE!                   \n"
+                    << "=========================================================\n"
+                    << "[=] ROUND STATS: Opponent has " << count_of_opponent_sets << " sets. You have " << count_of_player_sets << " sets.\n"
+                    << "=========================================================\n"
+                    << RESET;
             }
-            std::cout << "In total you've won " << total_player_win << " times in total. The opponent won " << total_opponent_win << " times." << std::endl;
+
+            std::cout << YELLOW
+                << "\n==================== GLOBAL SCORE =======================\n"
+                << "       [*] YOU: " << total_player_win << " WINS   |   OPPONENT: " << total_opponent_win << " WINS      \n"
+                << "=========================================================\n"
+                << RESET;
+
             return 0;
         }
         return 1;
@@ -240,7 +265,7 @@ public:
             Cards.player_cards[player_choose_card] = 0;
             ++count_of_player_sets;
             if (!from_deck) Cards.eventual_cards[player_choose_card] = -1;
-            std::cout << "You have collected set of " << Cards.deck_of_cards[player_choose_card] << ". In total you have " << count_of_player_sets << " sets" << std::endl;
+            std::cout << GREEN << "[★] SET COLLECTED: You have collected set of " << Cards.deck_of_cards[player_choose_card] << ". In total you have " << count_of_player_sets << " sets" << RESET << std::endl;
         }
     }
 
@@ -249,7 +274,7 @@ public:
             Cards.opponent_cards[opponent_choose_card] = 0;
             ++count_of_opponent_sets;
             Cards.eventual_cards[opponent_choose_card] = -1;
-            std::cout << "The opponent have collected set. In total he has " << count_of_opponent_sets << " sets" << std::endl;
+            std::cout << RED << "[☠] OPPONENT SET: The opponent have collected set. In total he has " << count_of_opponent_sets << " sets" << RESET << std::endl;
         }
     }
 
@@ -299,14 +324,14 @@ public:
         char key;
 
         while (true) {
-            std::cout << "\r";
+            std::cout << "\r" << YELLOW << "       ";
 
             for (int i = 1; i <= count_of_player_cards; ++i) {
-                if (i == cur_card) std::cout << "^ ";
-                else std::cout << "  ";
+                if (i == cur_card) std::cout << "  ^   ";
+                else std::cout << "      ";
             }
 
-            std::cout << "(A - left, D - right, Enter - select)";
+            std::cout << "(A - left, D - right, Enter - select)" << RESET;
 
             key = _getch();
 
@@ -324,23 +349,34 @@ public:
     }
 
     void print_player_display() {
+        std::cout << YELLOW << "\n================= YOUR HAND =================\n" << "       ";
         for (int i = 0; i < 13; ++i) {
             if ((int)Cards.player_cards[i] > 0) {
-                std::cout << Cards.deck_of_cards[i] << " ";
+                std::cout << "+---+ ";
             }
         }
-        std::cout << std::endl;
+        std::cout << std::endl << "Value: ";
+
         for (int i = 0; i < 13; ++i) {
             if ((int)Cards.player_cards[i] > 0) {
-                std::cout << (int)Cards.player_cards[i] << " ";
+                std::cout << "| " << Cards.deck_of_cards[i] << " | ";
             }
         }
-        std::cout << std::endl;
-        //for (int i = 0; i < count_of_cards; ++i) {
-        //    if (i == cur_card) std::cout << "^ ";
-        //    else std::cout << "  ";
-        //}
-        //std::cout << std::endl;
+        std::cout << std::endl << "Count: ";
+
+        for (int i = 0; i < 13; ++i) {
+            if ((int)Cards.player_cards[i] > 0) {
+                std::cout << "| " << (int)Cards.player_cards[i] << " | ";
+            }
+        }
+        std::cout << std::endl << "       ";
+
+        for (int i = 0; i < 13; ++i) {
+            if ((int)Cards.player_cards[i] > 0) {
+                std::cout << "+---+ ";
+            }
+        }
+        std::cout << RESET << std::endl;
     }
 };
 
