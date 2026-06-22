@@ -99,6 +99,15 @@ public:
         }
         return total;
     }
+
+    void reset() {
+        for (int i = 0; i < 13; ++i) {
+            count_of_cards[i] = 4;
+            player_cards[i] = 0;
+            opponent_cards[i] = 0;
+            eventual_cards[i] = 0;
+        }
+    }
 };
 
 class GameLoop {
@@ -110,6 +119,9 @@ public:
     short count_of_opponent_sets;
     short count_of_check_opponent;
     bool is_victory;
+
+    short total_player_win = 0;
+    short total_opponent_win = 0;
 
 
     void Loop() {
@@ -202,19 +214,22 @@ public:
                 break;
             }
         }
-        system("pause");
     }
 
     int check_victory() {
         if (count_of_player_sets + count_of_opponent_sets == 13 or count_of_player_sets >= 7 or count_of_opponent_sets >= 7) {
             if (count_of_player_sets > count_of_opponent_sets) {
+                ++total_player_win;
                 std::cout << "Game over! You win!" << std::endl;
                 std::cout << "You have " << count_of_player_sets << " sets. The opponent has " << count_of_opponent_sets << " sets" << std::endl;
+
             }
             else {
+                ++total_opponent_win;
                 std::cout << "Game over! You lose!" << std::endl;
                 std::cout << "The opponent has " << count_of_opponent_sets << " sets. You have " << count_of_player_sets << " sets" << std::endl;
             }
+            std::cout << "In total you've won " << total_player_win << " times in total. The opponent won " << total_opponent_win << " times." << std::endl;
             return 0;
         }
         return 1;
@@ -238,8 +253,26 @@ public:
         }
     }
 
+    bool EndGame() {
+        std::cout << "Press Enter to play again or Esc to exit!" << std::endl;
+
+        char key;
+        while (true) {
+            key = _getch();
+            if (key == '\r') {
+                system("cls");
+                return true;
+            }
+            if (key == 27) {
+                return false;
+            }
+        }
+    }
+
 
     void StartGame() {
+        Cards.reset();
+
         cur_card = 0;
         count_of_player_sets = 0;
         count_of_opponent_sets = 0;
@@ -316,5 +349,11 @@ int main()
     srand(time(0));
     GameLoop Game;
 
-    Game.StartGame();
+    while (true) {
+        Game.StartGame();
+
+        if (!Game.EndGame()) {
+            break;
+        }
+    }
 }
